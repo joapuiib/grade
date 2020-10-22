@@ -1,0 +1,45 @@
+subPackage: dam.m03.uf1.data
+name: integers
+exercises:
+  - className: "IsOdd"
+    tests:
+      - name: "main"
+        input: "33"
+        output: "true"
+      - name: "false_result"
+        input: "44"
+        output: "false"
+      - name: "zero"
+        input: "0"
+        output: "false"
+  - className: "NiceDivide"
+    tests:
+      - name: "main"
+        input: "11 2"
+        output: "11 dividit entre 2 és 5 mòdul 1"
+      - name: "second"
+        input: "20 5"
+        output: "20 dividit entre 5 és 4 mòdul 0"
+  - className: "OneIs10"
+    tests:
+      - name: "none"
+        input: "9 9 9 9"
+        output: "false"
+      - name: "first"
+        input: "10 0 0 0"
+        output: "true"
+      - name: "last"
+        input: "0 0 0 10"
+        output: "true"
+      - name: "all"
+        input: "10 10 10 10"
+        output: "true"
+  - className: "AverageSpeed"
+    tests:
+      - name: "main"
+        input: "160.0 60.0"
+        output: "160.0"
+      - name: "second"
+        input: "140.0 30.0"
+        output: "280.0"
+
