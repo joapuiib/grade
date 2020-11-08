@@ -6,9 +6,12 @@ import subprocess
 
 parser = argparse.ArgumentParser()
 parser.add_argument( 'csv_filename' )
+parser.add_argument( '-d', '--dirname' )
 args = parser.parse_args()
 
 filename = args.csv_filename
+dirname = args.dirname
+
 csvfile = open( filename, 'r' )
 reader = csv.reader( csvfile, delimiter=',' )
 
@@ -20,4 +23,4 @@ for alumne, repo in reader :
 
     print(nom, " => ", repo)
     if repo:
-        subprocess.call(["git", "clone", repo, nom])
+        subprocess.call(["git", "clone", repo, "{}/{}".format(dirname, nom)])
