@@ -1,0 +1,14 @@
+subPackage: dam.m03.uf1.data
+name: integers
+exercises:
+  - className: "IsOdd"
+    tests:
+      - name: "main"
+        input: "33"
+        output: "true"
+      - name: "false_result"
+        input: "44"
+        output: "false"
+      - name: "zero"
+        input: "0"
+        output: "false"
