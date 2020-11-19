@@ -77,7 +77,7 @@ if __name__ == '__main__':
             subprocess.call(["cat", source_file])
             print()
 
-            for test in exercise["tests"] :
+            for test in exercise.get("tests",[]) :
                 expected_output = test["output"]
                 test_input = test["input"]
 
@@ -88,7 +88,7 @@ if __name__ == '__main__':
                     timer.start()
                     output = process.communicate(input=test_input.encode('utf-8'))[0].decode("utf-8")
                     return_code = process.returncode
-                except :
+                except Exception : 
                     status = "TIMEOUT"
                 finally :
                     timer.cancel()
