@@ -5,10 +5,6 @@ exercises:
     tests:
       - name: "main"
         input: "33"
-        output: "true"
-      - name: "false_result"
-        input: "44"
         output: "false"
-      - name: "zero"
-        input: "0"
-        output: "false"
+  - className: "IsOdd"
+  - className: "IsOdd"

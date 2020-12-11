@@ -42,8 +42,12 @@ if __name__ == '__main__':
     args.dir.sort(key=lambda x: x.split(".")[1])
 
     for path_dir in args.dir:
-        pull_command = "git -C {} pull".format(path_dir)
+        tag_command = "git -C {} checkout master".format(path_dir)
+        code_tag = subprocess.call(tag_command.split())
+        pull_command = "git -C {} pull --tags".format(path_dir)
+        print(pull_command)
         code_pull = subprocess.call(pull_command.split())
+        print()
 
         if code_pull is not 0:
             continue
@@ -51,6 +55,16 @@ if __name__ == '__main__':
         test_cases = loadYAML( args.test_cases )
 
         subpackage = test_cases["subPackage"]
+        # tag = test_cases.get("tag", "master")
+        # tag_command = "git -C {} checkout {}".format(path_dir, tag)
+        # print(tag_command)
+        code_tag = subprocess.call(tag_command.split())
+        print()
+
+        if code_tag is not 0:
+            print("Error al canviar al tag {}".format(tag))
+            continue
+
         for exercise in test_cases["exercises"]:
             name = exercise["className"]
             path = "{}/**/{}/{}.java".format(path_dir, "/".join(subpackage.split(".")), name)
