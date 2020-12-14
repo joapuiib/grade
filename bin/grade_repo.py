@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python3.8
 import argparse
 import yaml
 import subprocess
@@ -9,6 +9,7 @@ import difflib
 import itertools
 from colorama import Fore
 import re
+from datetime import datetime
 
 def loadYAML( filename ) :
     with open(filename, 'r') as stream: 
@@ -28,8 +29,8 @@ def column_print(first, second):
     first = first.splitlines()
     second = second.splitlines()
     for i, j in itertools.zip_longest(first, second):
-        i = "^"+i+"$" if i is not None else ""
-        j = "^"+j+"$" if j is not None else ""
+        i = "^"+i+"$" if i != None else ""
+        j = "^"+j+"$" if j != None else ""
         print("    {}{}    {}{}".format(i, " "*(50 - get_nchars(i)), j, " "*(50 - get_nchars(j))))
 
 if __name__ == '__main__':
@@ -49,20 +50,30 @@ if __name__ == '__main__':
         code_pull = subprocess.call(pull_command.split())
         print()
 
-        if code_pull is not 0:
+        if code_pull != 0:
             continue
 
         test_cases = loadYAML( args.test_cases )
 
         subpackage = test_cases["subPackage"]
-        # tag = test_cases.get("tag", "master")
-        # tag_command = "git -C {} checkout {}".format(path_dir, tag)
-        # print(tag_command)
+        tag = test_cases.get("tag", "master")
+        tag_command = "git -C {} checkout {}".format(path_dir, tag)
+        print(tag_command)
         code_tag = subprocess.call(tag_command.split())
         print()
 
-        if code_tag is not 0:
+        if code_tag != 0:
             print("Error al canviar al tag {}".format(tag))
+            continue
+
+        tagdate_command = "git -C {} log -1 --format=%ai {}".format(path_dir, tag)
+        process = subprocess.Popen(tagdate_command.split(), stdout=subprocess.PIPE)
+        tag_date = " ".join(process.communicate()[0].decode("utf-8").strip().split()[:-1])
+        tag_date = datetime.fromisoformat(tag_date)
+        test_date = datetime.fromisoformat(test_cases["date"])
+        print(tag_date, test_date)
+        if tag_date > test_date:
+            print("El tag ha segut modificat despres de la data d'entrega")
             continue
 
         for exercise in test_cases["exercises"]:
@@ -81,15 +92,15 @@ if __name__ == '__main__':
             if not os.path.isdir(out_dir):
                 os.makedirs(out_dir, exist_ok=True)
                  
+            subprocess.call(["cat", source_file])
+            print()
+
             # Build
             compile_command = "docker run --rm -v {}/{}:/app -w /app -i java:alpine javac -d out/ src/{}.java".format(os.getcwd(), path_dir, package)
             return_code = subprocess.call(compile_command.split())
             if return_code != 0 :
                 print("Error compiling: {}.java".format(name))
                 continue
-
-            subprocess.call(["cat", source_file])
-            print()
 
             for test in exercise.get("tests",[]) :
                 expected_output = test["output"]
@@ -137,7 +148,7 @@ if __name__ == '__main__':
                                     failed = True
 
                                 if ib < jb:
-                                    if output[ib:jb].strip() is "":
+                                    if output[ib:jb].strip() == "":
                                         presentation = False
                                     else :
                                         output_color = Fore.YELLOW
