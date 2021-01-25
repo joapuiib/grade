@@ -103,8 +103,7 @@ if __name__ == '__main__':
         test_date = datetime.fromisoformat(test_cases["date"])
         print(tag_date, test_date)
         if tag_date > test_date:
-            print("El tag ha segut modificat despres de la data d'entrega")
-            continue
+            print(Fore.RED + "COMPTE!! El tag ha segut modificat despres de la data d'entrega" + Fore.RESET)
 
         for exercise in test_cases["exercises"]:
             name = exercise["className"]
@@ -122,7 +121,7 @@ if __name__ == '__main__':
             if not os.path.isdir(out_dir):
                 os.makedirs(out_dir, exist_ok=True)
                  
-            subprocess.call(["cat", source_file])
+            subprocess.call(["cat", "-n", source_file])
             print()
 
             # Build
@@ -155,7 +154,7 @@ if __name__ == '__main__':
                 expected_output += '\n'
                 diffcodes = difflib.SequenceMatcher(a=expected_output, b=output).get_opcodes()
 
-                print(diffcodes)
+                # print(diffcodes)
                 
                 color_expected_output = ""
                 color_output = ""
@@ -232,7 +231,8 @@ if __name__ == '__main__':
 
                 print("- {}: {}".format(test["name"], status))
                 print("- input")
-                print("\t" + test_input.replace("\n", "\t\n"))
+                for line in test_input.splitlines():
+                    print(Fore.CYAN + "    {}".format(line) + Fore.RESET)
                 print("- output")
                 column_print(color_expected_output, color_output)
                 print()
