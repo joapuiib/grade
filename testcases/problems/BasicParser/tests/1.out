@@ -1,0 +1,2 @@
+Aquest text permet inserir format, com per ejemple \u001B[1mtext en negreta\u001B[0m o \u001B[3mtext cursiva\u001B[0m.
+A més, podem posar colors, com el \u001B[31mvermell\u001B[39m. També es poden \u001B[1m\u001B[32mcombinar colors i estils\u001B[39m\u001B[0m.

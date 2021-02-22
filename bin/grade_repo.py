@@ -11,6 +11,7 @@ from colorama import Fore
 import re
 from datetime import datetime
 import sys
+from ansiwrap import wrap
 
 def loadYAML( filename ) :
     with open(filename, 'r') as stream: 
@@ -20,7 +21,7 @@ def loadYAML( filename ) :
             print(exc)
             sys.exit(1)
 
-def column_print(first, second):
+def column_print(first, second, n=40):
     ansi_escape = r'\x1b\[\d{1,2}m'
     def get_nchars(string):
         """Return number of characters, omitting ANSI codes."""
@@ -32,7 +33,36 @@ def column_print(first, second):
     for i, j in itertools.zip_longest(first, second):
         i = "^"+i+"$" if i != None else ""
         j = "^"+j+"$" if j != None else ""
-        print("    {}{}    {}{}".format(i, " "*(50 - get_nchars(i)), j, " "*(50 - get_nchars(j))))
+        i_list = wrap(i, n)
+        j_list = wrap(j, n)
+        for ii, jj in itertools.zip_longest(i_list, j_list):
+            ii = ii if ii != None else ""
+            jj = jj if jj != None else ""
+            print("    {}{}    {}{}".format(ii, " "*(50 - get_nchars(ii)), jj, " "*(50 - get_nchars(jj))))
+
+def load_file(path):
+    with open(path, "r") as f:
+        content = f.read()
+        if content.endswith("\n") :
+            content = content[:-1]
+        return content
+
+def load_tests(path):
+    tests_path = path + "/tests"
+    tests = []
+    if os.path.isdir(tests_path):
+        i = 1
+        while(True):
+            file_path = "{}/{}".format(tests_path, i)
+            if os.path.isfile(file_path + ".in") and os.path.isfile(file_path + ".out") :
+                entrada = load_file(file_path + ".in")
+                sortida = load_file(file_path + ".out")
+                tests += [{"name":i, "input": entrada, "output": sortida}]
+                i += 1
+            else :
+                break
+
+    return tests
 
 if __name__ == '__main__':
 
@@ -74,8 +104,7 @@ if __name__ == '__main__':
         test_date = datetime.fromisoformat(test_cases["date"])
         print(tag_date, test_date)
         if tag_date > test_date:
-            print("El tag ha segut modificat despres de la data d'entrega")
-            continue
+            print(Fore.RED + "COMPTE!! El tag ha segut modificat despres de la data d'entrega" + Fore.RESET)
 
         for exercise in test_cases["exercises"]:
             name = exercise["className"]
@@ -103,7 +132,10 @@ if __name__ == '__main__':
                  print("Error compiling: {}.java".format(name))
                  continue
 
-            for test in exercise.get("tests",[]) :
+            tests = exercise.get("tests",[])
+            tests += load_tests("testcases/problems/{}".format(name))
+
+            for test in tests:
                 expected_output = test["output"]
                 test_input = test["input"]
 
@@ -112,7 +144,7 @@ if __name__ == '__main__':
                 timer = Timer(5, process.kill)
                 try :
                     timer.start()
-                    output = process.communicate(input=test_input.encode('utf-8'))[0].decode("utf-8")
+                    output = process.communicate(input=test_input.encode('utf-8'))[0].decode("utf-8").replace("\u001B", "\\u001B")
                     return_code = process.returncode
                 except Exception : 
                     status = "TIMEOUT"
@@ -161,8 +193,11 @@ if __name__ == '__main__':
                                 output_color = Fore.RED
 
                             elif diff == "delete" :
-                                perfect = False
-                                failed = True
+                                if not (expected_output[ia:ja].strip() and output[ib:jb].strip()):
+                                    presentation = True
+                                else :
+                                    perfect = False
+                                    failed = True
 
                             elif diff == "equal" :
                                 expected_color = Fore.GREEN
@@ -186,18 +221,19 @@ if __name__ == '__main__':
                         # color_output = color_output.replace(Fore.RED, "RED")
                         # color_output = color_output.replace(Fore.GREEN, "GREEN")
 
-                        if perfect :
-                            status = Fore.GREEN + "PERFECT" + Fore.RESET
-                        elif failed:
+                        if failed:
                             status = Fore.RED + "FAILED" + Fore.RESET
                         elif presentation :
                             status = Fore.CYAN + "PRESENTATION" + Fore.RESET
+                        elif perfect :
+                            status = Fore.GREEN + "PERFECT" + Fore.RESET
                         else :
                             status = Fore.YELLOW + "PASSED" + Fore.RESET
 
                 print("- {}: {}".format(test["name"], status))
                 print("- input")
-                print("\t" + test_input.replace("\n", "\t\n"))
+                for line in test_input.splitlines():
+                    print(Fore.CYAN + "    {}".format(line) + Fore.RESET)
                 print("- output")
                 column_print(color_expected_output, color_output)
                 print()
