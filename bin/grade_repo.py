@@ -21,7 +21,7 @@ def highlight(text):
 
 def line_number_print(text):
     for i, line in enumerate(text.split("\n")):
-        print("{0: 8}  {1:}".format(i, line))
+        print("{0: 8}  {1:}".format(i+1, line))
 
 def loadYAML( filename ) :
     with open(filename, 'r') as stream: 
