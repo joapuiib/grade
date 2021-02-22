@@ -12,6 +12,16 @@ import re
 from datetime import datetime
 import sys
 from ansiwrap import wrap
+from pygments import highlight as highlight_py
+from pygments.lexers import get_lexer_by_name
+from pygments.formatters import Terminal256Formatter
+
+def highlight(text):
+    return highlight_py(text, get_lexer_by_name("java"), Terminal256Formatter(style="monokai"))
+
+def line_number_print(text):
+    for i, line in enumerate(text.split("\n")):
+        print("{0: 8}  {1:}".format(i, line))
 
 def loadYAML( filename ) :
     with open(filename, 'r') as stream: 
@@ -88,7 +98,7 @@ if __name__ == '__main__':
 
         subpackage = test_cases["subPackage"]
         tag = test_cases.get("tag", "master")
-        tag_command = "git -C {} checkout {}".format(path_dir, tag)
+        tag_command = "git -c advice.detachedHead=false -C {} checkout {}".format(path_dir, tag)
         print(tag_command)
         code_tag = subprocess.call(tag_command.split())
         print()
@@ -102,16 +112,19 @@ if __name__ == '__main__':
         tag_date = " ".join(process.communicate()[0].decode("utf-8").strip().split()[:-1])
         tag_date = datetime.fromisoformat(tag_date)
         test_date = datetime.fromisoformat(test_cases["date"])
-        print(tag_date, test_date)
+        print("Limit:", test_date, "Submitted:", tag_date)
         if tag_date > test_date:
             print(Fore.RED + "COMPTE!! El tag ha segut modificat despres de la data d'entrega" + Fore.RESET)
 
         for exercise in test_cases["exercises"]:
             name = exercise["className"]
+            print("="*20)
+            print(name)
+            print("="*20)
+
             path = "{}/**/{}/{}.java".format(path_dir, "/".join(subpackage.split(".")), name)
             source_file = next(iter(glob(path, recursive=True)), None)
 
-            print(source_file)
             if not source_file :
                 print("{}: Not found".format(name))
                 continue
@@ -122,12 +135,22 @@ if __name__ == '__main__':
             if not os.path.isdir(out_dir):
                 os.makedirs(out_dir, exist_ok=True)
                  
-            subprocess.call(["cat", "-n", source_file])
-            print()
-
             # Build
-            compile_command = "docker run --rm -v {}/{}:/app -w /app -i java:alpine javac -cp out/ -sourcepath src/ -d out/ src/{}.java".format(os.getcwd(), path_dir, package)
-            return_code = subprocess.call(compile_command.split())
+            compile_command = "docker run --rm -v {}/{}:/app -w /app -i java:alpine javac -verbose -cp out/ -sourcepath src/ -d out/ src/{}.java".format(os.getcwd(), path_dir, package)
+            process = subprocess.Popen(compile_command.split(), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            out_compile = process.communicate()[1].decode("utf-8")
+            return_code = process.returncode
+
+            # Look for sources in compile output and print them
+            matches = re.findall("out/(.*)\.class", out_compile)
+            for source in matches :
+                source_file = "{}/src/{}.java".format(path_dir, source)
+                print(source_file)
+                with open(source_file) as f:
+                    line_number_print(highlight(f.read()))
+                print()
+
+
             if return_code != 0 :
                  print("Error compiling: {}.java".format(name))
                  continue
@@ -239,4 +262,3 @@ if __name__ == '__main__':
                 print()
         tag_command = "git -C {} checkout master".format(path_dir)
         code_tag = subprocess.call(tag_command.split())
-        print("=================================")
