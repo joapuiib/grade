@@ -10,6 +10,7 @@ import itertools
 from colorama import Fore
 import re
 from datetime import datetime
+import sys
 
 def loadYAML( filename ) :
     with open(filename, 'r') as stream: 
@@ -92,15 +93,15 @@ if __name__ == '__main__':
             if not os.path.isdir(out_dir):
                 os.makedirs(out_dir, exist_ok=True)
                  
-            subprocess.call(["cat", source_file])
+            subprocess.call(["cat", "-n", source_file])
             print()
 
             # Build
-            compile_command = "docker run --rm -v {}/{}:/app -w /app -i java:alpine javac -d out/ src/{}.java".format(os.getcwd(), path_dir, package)
+            compile_command = "docker run --rm -v {}/{}:/app -w /app -i java:alpine javac -cp out/ -sourcepath src/ -d out/ src/{}.java".format(os.getcwd(), path_dir, package)
             return_code = subprocess.call(compile_command.split())
             if return_code != 0 :
-                print("Error compiling: {}.java".format(name))
-                continue
+                 print("Error compiling: {}.java".format(name))
+                 continue
 
             for test in exercise.get("tests",[]) :
                 expected_output = test["output"]
@@ -200,4 +201,6 @@ if __name__ == '__main__':
                 print("- output")
                 column_print(color_expected_output, color_output)
                 print()
+        tag_command = "git -C {} checkout master".format(path_dir)
+        code_tag = subprocess.call(tag_command.split())
         print("=================================")
