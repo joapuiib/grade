@@ -1,0 +1,8 @@
+name: prova_resum
+subPackage: dam.m03.uf2.practica
+tag: PracticaUF2
+date: "2021-02-21 23:59:59"
+exercises:
+  - className: "HighPeaks"
+  - className: "RecursiveFactorial"
+  - className: "RecursiveFibonacci"

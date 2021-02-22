@@ -1,0 +1,40 @@
+name: prova_resum
+subPackage: dam.m03.uf1.generalexam
+tag: ExamenGeneral
+date: "2020-12-14 14:00:00"
+exercises:
+  - className: "FootballTournamentManager"
+    tests:
+      - name: "main"
+        input: "0 1 3 0 0 2 0 3 1 2 2 2 3 4 0 1 -1"
+        output: "L'equip 0 té 3 punts.\nL'equip 1 té 1 punts.\nL'equip 2 té 4 punts.\nL'equip 3 té 0 punts.\nL'equip 4 té 3 punts.\nL'equip 2 és el guanyador."
+      - name: "first"
+        input: "0 1 3 0 0 1 1 1 -1"
+        output: "L'equip 0 té 4 punts.\nL'equip 1 té 1 punts.\nL'equip 2 té 0 punts.\nL'equip 3 té 0 punts.\nL'equip 4 té 0 punts.\nL'equip 1 és el guanyador."
+  - className: "RepositoryName"
+    tests:
+      - name: "main"
+        input: "3 1 nom.cognom.7e4@itb.cat"
+        output: "nomcognom7e4-dam-m03-uf1"
+      - name: "joan"
+        input: "16 2 joan.puigcerver@itb.cat"
+        output: "joanpuigcerver-dam-m16-uf2"
+  - className: "ComputeGradeUF1"
+    tests:
+      - name: "pere"
+        input: "Pere 7.5 3.4 6.2 5.1 8.2 5.7"
+        output: "Pere ha aprovat"
+      - name: "josep"
+        input: "Josep 0 10 0 10 0 10 0"
+        output: "Josep ha suspès, no arriba al mínim de pràctiques"
+      - name: "carla"
+        input: "Carla 10 0 10 0 10 0 10"
+        output: "Carla ha suspès, no arriba al mínim de proves"
+      - name: "tania"
+        input: "Tania 5 4 5 4 5 4 5"
+        output: "Tania ha suspes, no arriba al 5."
+  - className: "MinMaxLight"
+    tests:
+      - name: "main"
+        input: ""
+        output: "El valor més clar és: 254\nEl valor més oscur és: 0"

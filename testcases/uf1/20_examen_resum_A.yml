@@ -1,0 +1,34 @@
+name: prova_resum
+subPackage: dam.m03.uf1.generalexam
+tag: ExamenGeneral
+date: "2020-12-15 10:35:00"
+exercises:
+  - className: "HeartRateWarning"
+    tests:
+      - name: "main"
+        input: "40 180 56 100 190 160 190 198 199 200 179 100 70 50 37 36 37 50 -1"
+        output: "MASSA ALT\nMASSA ALT\nMASSA BAIX"
+      - name: "high"
+        input: "5 20 21 10 21 21 10 21 21 21 10 21 21 21 21 10 21 21 21 21 21 10 -1"
+        output: "MASSA ALT\nMASSA ALT\nMASSA ALT\nMASSA ALT\nMASSA ALT\nMASSA ALT"
+      - name: "low"
+        input: "5 20 10 0 10 0 0 10 0 0 0 10 0 0 0 0 10 0 0 0 0 0 10 -1"
+        output: "MASSA BAIX\nMASSA BAIX\nMASSA BAIX\nMASSA BAIX\nMASSA BAIX\nMASSA BAIX"
+  - className: "BasketballTournamentManager"
+    tests:
+      - name: "main"
+        input: "1 5 7 1 5 4 2 1 3 1 -1"
+        output: "L'equip 1 té 1 victòries\nL'equip 5 té 1 victòries\nL'equip 7 té 1 victòries\nL'equip 1 té 2 victòries\nL'equip 5 té 2 victòries\nL'equip 4 té 1 victòries\nL'equip 2 té 1 victòries\nL'equip 1 té 3 victòries\nL'equip 3 té 1 victòries\nL'equip 1 té 4 victòries\nL'equip guanyador és el 1"
+      - name: "all"
+        input: "2 1 2 3 4 5 6 7 2 -1"
+        output: "L'equip 2 té 1 victòries\nL'equip 1 té 1 victòries\nL'equip 2 té 2 victòries\nL'equip 3 té 1 victòries\nL'equip 4 té 1 victòries\nL'equip 5 té 1 victòries\nL'equip 6 té 1 victòries\nL'equip 7 té 1 victòries\nL'equip 2 té 3 victòries\nL'equip guanyador és el 2"
+  - className: "GenderGuesser"
+    tests:
+      - name: "main"
+        input: "nena\nnen\nnens\nnenes\ncabra\nboc\ncabres\nEND"
+        output: "femení\nmasculí\nplural\nplural\nfemení\nmasculí\nplural"
+  - className: "DarkOrLight"
+    tests:
+      - name: "main"
+        input: ""
+        output: "fosca"
