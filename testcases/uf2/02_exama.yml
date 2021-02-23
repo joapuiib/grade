@@ -1,0 +1,8 @@
+name: prova_resum
+subPackage: dam.m03.uf2.generalexam
+tag: ExamenUF2
+date: "2021-02-23 10:32:00"
+exercises:
+  - className: "AirContamination"
+  - className: "LibertySpeechApp"
+  - className: "EndangeredAnimalSights"
