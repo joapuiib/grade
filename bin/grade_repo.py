@@ -142,7 +142,10 @@ if __name__ == '__main__':
             return_code = process.returncode
 
             # Look for sources in compile output and print them
-            matches = re.findall("out/(.*)\.class", out_compile)
+            matches = re.findall("out/([^$]*)\.class", out_compile)
+            # print(out_compile)
+            # print(matches)
+
             for source in matches :
                 source_file = "{}/src/{}.java".format(path_dir, source)
                 print(source_file)
