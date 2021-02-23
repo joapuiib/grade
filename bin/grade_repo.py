@@ -253,12 +253,13 @@ if __name__ == '__main__':
                         else :
                             status = Fore.YELLOW + "PASSED" + Fore.RESET
 
-                print("- {}: {}".format(test["name"], status))
+                print("- {}".format(test["name"]))
                 print("- input")
                 for line in test_input.splitlines():
                     print(Fore.CYAN + "    {}".format(line) + Fore.RESET)
                 print("- output")
                 column_print(color_expected_output, color_output)
+                print("- status: {}".format(status))
                 print()
         tag_command = "git -C {} checkout master".format(path_dir)
         code_tag = subprocess.call(tag_command.split())
