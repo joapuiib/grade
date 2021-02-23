@@ -142,7 +142,7 @@ if __name__ == '__main__':
             return_code = process.returncode
 
             # Look for sources in compile output and print them
-            matches = re.findall("out/([^$]*)\.class", out_compile)
+            matches = re.findall("out/([^$\n]*)\.class", out_compile)
             # print(out_compile)
             # print(matches)
 
