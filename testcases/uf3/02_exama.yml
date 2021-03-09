@@ -1,0 +1,8 @@
+name: prova_resum
+subPackage: dam.m03.uf3.generalexam
+tag: ExamenUF3
+date: "2021-03-09 10:32:00"
+exercises:
+  - className: "CopyToUserFolder"
+  - className: "FileCounterLog"
+  - className: "StudentGradesFile"
