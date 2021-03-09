@@ -79,6 +79,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument( "test_cases" )
     parser.add_argument( "dir", nargs="*" )
+    parser.add_argument( "-v", "--verbose", action="store_true" )
     args = parser.parse_args()
 
     args.dir.sort(key=lambda x: x.split(".")[1])
@@ -136,10 +137,16 @@ if __name__ == '__main__':
                 os.makedirs(out_dir, exist_ok=True)
                  
             # Build
-            compile_command = "docker run --rm -v {}/{}:/app -w /app -i java:alpine javac -verbose -cp out/ -sourcepath src/ -d out/ src/{}.java".format(os.getcwd(), path_dir, package)
+            compile_command = "docker run --rm -v {}/{}:/app -w /app -i openjdk:12 javac -verbose -cp out/ -sourcepath src/ -d out/ src/{}.java".format(os.getcwd(), path_dir, package)
             process = subprocess.Popen(compile_command.split(), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-            out_compile = process.communicate()[1].decode("utf-8")
+            err_compile, out_compile = map(lambda x : x.decode("utf-8"), process.communicate())
+            # print("OUT", out_compile)
+            # print("ERR", err_compile)
             return_code = process.returncode
+
+            if return_code != 0 :
+                 print("Error compiling: {}.java".format(name))
+                 continue
 
             # Look for sources in compile output and print them
             matches = re.findall("out/([^$\n]*)\.class", out_compile)
@@ -154,9 +161,6 @@ if __name__ == '__main__':
                 print()
 
 
-            if return_code != 0 :
-                 print("Error compiling: {}.java".format(name))
-                 continue
 
             tests = exercise.get("tests",[])
             tests += load_tests("testcases/problems/{}".format(name))
@@ -166,7 +170,7 @@ if __name__ == '__main__':
                 test_input = test["input"]
 
                 status = None
-                process = subprocess.Popen("docker run --rm -v {}/{}:/app -w /app -i java:alpine java {}".format(os.getcwd(), out_dir, package).split(), stdin=subprocess.PIPE, stdout=subprocess.PIPE)
+                process = subprocess.Popen("docker run --rm -v {}/{}:/app -w /app -i openjdk:12 java {}".format(os.getcwd(), out_dir, package).split(), stdin=subprocess.PIPE, stdout=subprocess.PIPE)
                 timer = Timer(5, process.kill)
                 try :
                     timer.start()
