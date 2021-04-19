@@ -1,0 +1,6 @@
+name: prova_resum
+package: dam.m03.uf4.practica
+tag: practicaUF4
+date: "2021-04-19 00:00:00"
+exercises:
+  - className: "ChessBoardApp"

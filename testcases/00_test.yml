@@ -1,4 +1,4 @@
-subPackage: dam.m03.uf1.data
+package: dam.m03.uf1.data
 name: integers
 exercises:
   - className: "IsOdd"

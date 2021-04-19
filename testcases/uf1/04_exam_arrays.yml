@@ -1,5 +1,5 @@
 name: prova_seleccio
-subPackage: dam.m03.uf1.arrays.exam
+package: dam.m03.uf1.arrays.exam
 tag: ExamenArrays
 exercises:
   - className: "ArrayConfigurator"

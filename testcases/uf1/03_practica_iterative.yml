@@ -1,4 +1,4 @@
-subPackage: dam.m03.uf1.iterative.practice
+package: dam.m03.uf1.iterative.practice
 name: prova_seleccio
 exercises:
   - className: "DivideUntil0"

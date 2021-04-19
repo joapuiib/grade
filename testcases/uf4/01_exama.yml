@@ -1,0 +1,9 @@
+name: prova_resum
+package: dam.m03.uf4.generalexam
+tag: ExamenUF4
+date: "2021-04-12 12:15:00"
+exercises:
+  - className: "Twitter"
+    subpackage: twitter
+  - className: "GameEnemiesApp"
+    subpackage: gameenemies
