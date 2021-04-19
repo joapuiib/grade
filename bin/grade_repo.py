@@ -15,71 +15,89 @@ from ansiwrap import wrap
 from pygments import highlight as highlight_py
 from pygments.lexers import get_lexer_by_name
 from pygments.formatters import Terminal256Formatter
+import shutil
+
 
 def highlight(text):
     return highlight_py(text, get_lexer_by_name("java"), Terminal256Formatter(style="monokai"))
 
+
 def line_number_print(text):
     for i, line in enumerate(text.split("\n")):
-        print("{0: 8}  {1:}".format(i+1, line))
+        print("{0: 8}  {1:}".format(i + 1, line))
 
-def loadYAML( filename ) :
-    with open(filename, 'r') as stream: 
+
+def loadYAML(filename):
+    with open(filename, 'r') as stream:
         try:
             return yaml.safe_load(stream)
         except yaml.YAMLError as exc:
             print(exc)
             sys.exit(1)
 
+
+def remove_color(string):
+    ansi_escape = r'\x1b\[(?:\d;)?\d{1,2}m'
+    ansi_pattern = re.compile(ansi_escape)
+    return ansi_pattern.sub('', string)
+
+
 def column_print(first, second, n=40):
-    ansi_escape = r'\x1b\[\d{1,2}m'
+    margin = 10
+    space = n + margin
+
     def get_nchars(string):
-        """Return number of characters, omitting ANSI codes."""
-        ansi_pattern = re.compile( ansi_escape )
-        return len(ansi_pattern.sub('', string))
+        return len(remove_color(string))
 
     first = first.splitlines()
     second = second.splitlines()
     for i, j in itertools.zip_longest(first, second):
-        i = "^"+i+"$" if i != None else ""
-        j = "^"+j+"$" if j != None else ""
+        i = "^" + i + "$" if i is not None else ""
+        j = "^" + j + "$" if j is not None else ""
         i_list = wrap(i, n)
         j_list = wrap(j, n)
         for ii, jj in itertools.zip_longest(i_list, j_list):
-            ii = ii if ii != None else ""
-            jj = jj if jj != None else ""
-            print("    {}{}    {}{}".format(ii, " "*(50 - get_nchars(ii)), jj, " "*(50 - get_nchars(jj))))
+            ii = ii if ii is not None else ""
+            jj = jj if jj is not None else ""
+            print("    {}{}    {}{}".format(ii, " " * (space - get_nchars(ii)), jj, " " * (space - get_nchars(jj))))
+
 
 def load_file(path):
     with open(path, "r") as f:
         content = f.read()
-        if content.endswith("\n") :
+        if content.endswith("\n"):
             content = content[:-1]
         return content
+
 
 def load_tests(path):
     tests_path = path + "/tests"
     tests = []
     if os.path.isdir(tests_path):
-        i = 1
-        while(True):
-            file_path = "{}/{}".format(tests_path, i)
-            if os.path.isfile(file_path + ".in") and os.path.isfile(file_path + ".out") :
+        filenames = set()
+        for name in os.listdir(tests_path):
+            name, _ = os.path.splitext(name)
+            filenames.add(name)
+
+        for name in filenames:
+            file_path = "{}/{}".format(tests_path, name)
+            if os.path.isfile(file_path + ".in") and os.path.isfile(file_path + ".out"):
                 entrada = load_file(file_path + ".in")
                 sortida = load_file(file_path + ".out")
-                tests += [{"name":i, "input": entrada, "output": sortida}]
-                i += 1
-            else :
+                tests += [{"name": name, "input": entrada, "output": sortida}]
+            else:
                 break
 
     return tests
 
-if __name__ == '__main__':
 
+if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument( "test_cases" )
-    parser.add_argument( "dir", nargs="*" )
-    parser.add_argument( "-v", "--verbose", action="store_true" )
+    parser.add_argument("test_cases")
+    parser.add_argument("dir", nargs="*")
+    parser.add_argument("-v", "--verbose", action="store_true")
+    parser.add_argument("--remove-color", action="store_true")
+    parser.add_argument("-i", "--interactive", action="store_true")
     args = parser.parse_args()
 
     args.dir.sort(key=lambda x: x.split(".")[1])
@@ -87,7 +105,7 @@ if __name__ == '__main__':
     for path_dir in args.dir:
         tag_command = "git -C {} checkout master".format(path_dir)
         code_tag = subprocess.call(tag_command.split())
-        pull_command = "git -C {} pull --tags".format(path_dir)
+        pull_command = "git -C {} pull --tags -f".format(path_dir)
         print(pull_command)
         code_pull = subprocess.call(pull_command.split())
         print()
@@ -95,9 +113,9 @@ if __name__ == '__main__':
         if code_pull != 0:
             continue
 
-        test_cases = loadYAML( args.test_cases )
+        test_cases = loadYAML(args.test_cases)
 
-        subpackage = test_cases["subPackage"]
+        package = test_cases["package"]
         tag = test_cases.get("tag", "master")
         tag_command = "git -c advice.detachedHead=false -C {} checkout {}".format(path_dir, tag)
         print(tag_command)
@@ -117,94 +135,107 @@ if __name__ == '__main__':
         if tag_date > test_date:
             print(Fore.RED + "COMPTE!! El tag ha segut modificat despres de la data d'entrega" + Fore.RESET)
 
+        out_dir = "{}/out/".format(path_dir)
+        if not os.path.isdir(out_dir):
+            os.makedirs(out_dir, exist_ok=True)
+
         for exercise in test_cases["exercises"]:
             name = exercise["className"]
-            print("="*20)
-            print(name)
-            print("="*20)
+            subpackage = exercise.get("subpackage", "")
+            path = "{}/**/{}/{}.java".format(path_dir, "/".join(package.split(".")), "/".join([subpackage, name]))
 
-            path = "{}/**/{}/{}.java".format(path_dir, "/".join(subpackage.split(".")), name)
+            print("=" * 20)
+            print(name)
+            print(path)
+            print("=" * 20)
+
             source_file = next(iter(glob(path, recursive=True)), None)
 
-            if not source_file :
+            if not source_file:
                 print("{}: Not found".format(name))
                 continue
 
-            package = source_file.split("src/")[1].replace(".java","")
+            java_package = source_file.split("src/")[1].replace(".java", "")
 
-            out_dir = "{}/out/".format(path_dir)
-            if not os.path.isdir(out_dir):
-                os.makedirs(out_dir, exist_ok=True)
-                 
+            tests = exercise.get("tests", [])
+            tests += load_tests("testcases/problems/{}".format(name))
+
             # Build
-            compile_command = "docker run --rm -v {}/{}:/app -w /app -i openjdk:12 javac -verbose -cp out/ -sourcepath src/ -d out/ src/{}.java".format(os.getcwd(), path_dir, package)
+            compile_command = "docker run --rm -v {}/{}:/app -w /app -i openjdk:12 javac -verbose -cp out/ -sourcepath src/ -d out/ src/{}.java".format(os.getcwd(), path_dir, java_package)
+            print(compile_command)
+
             process = subprocess.Popen(compile_command.split(), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-            err_compile, out_compile = map(lambda x : x.decode("utf-8"), process.communicate())
+            err_compile, out_compile = map(lambda x: x.decode("utf-8"), process.communicate())
             # print("OUT", out_compile)
             # print("ERR", err_compile)
             return_code = process.returncode
 
-            if return_code != 0 :
-                 print("Error compiling: {}.java".format(name))
-                 continue
+            if return_code != 0:
+                print("Error compiling: {}.java".format(name))
+                continue
 
             # Look for sources in compile output and print them
-            matches = re.findall("out/([^$\n]*)\.class", out_compile)
+            matches = re.findall(r"out/([^$\n]*)\.class", out_compile)
             # print(out_compile)
             # print(matches)
 
-            for source in matches :
+            for source in matches:
                 source_file = "{}/src/{}.java".format(path_dir, source)
                 print(source_file)
                 with open(source_file) as f:
                     line_number_print(highlight(f.read()))
                 print()
 
-
-
-            tests = exercise.get("tests",[])
-            tests += load_tests("testcases/problems/{}".format(name))
-
             for test in tests:
                 expected_output = test["output"]
                 test_input = test["input"]
 
                 status = None
-                process = subprocess.Popen("docker run --rm -v {}/{}:/app -w /app -i openjdk:12 java {}".format(os.getcwd(), out_dir, package).split(), stdin=subprocess.PIPE, stdout=subprocess.PIPE)
+                run_command = f"docker run --rm -v {os.getcwd()}/{out_dir}:/app -w /app -i openjdk:12 java {java_package}"
+                print(run_command)
+                if args.interactive:
+                    process = subprocess.Popen(run_command.split())
+                    process.communicate()
+                    continue
+                process = subprocess.Popen(run_command.split(), stdin=subprocess.PIPE, stdout=subprocess.PIPE)
                 timer = Timer(5, process.kill)
-                try :
+                try:
                     timer.start()
-                    output = process.communicate(input=test_input.encode('utf-8'))[0].decode("utf-8").replace("\u001B", "\\u001B")
-                    return_code = process.returncode
-                except Exception : 
-                    status = "TIMEOUT"
-                finally :
-                    timer.cancel()
+                    output = process.communicate(input=test_input.encode('utf-8'))[0].decode("utf-8")
+                    if args.remove_color:
+                        output = remove_color(output).replace("\u001B", "\\u001B")
+                    else:
+                        output = output.replace("\u001B", "\\u001B")
 
+                    return_code = process.returncode
+                except Exception:
+                    status = "TIMEOUT"
+                finally:
+                    timer.cancel()
 
                 expected_output += '\n'
                 diffcodes = difflib.SequenceMatcher(a=expected_output, b=output).get_opcodes()
 
                 # print(diffcodes)
-                
+
                 color_expected_output = ""
                 color_output = ""
                 if not status:
                     if return_code != 0:
                         status = Fore.RED + "RUNTIME" + Fore.RESET
-                    elif len(output) == 0 :
+                    elif len(output) == 0:
                         status = Fore.RED + "EMPTY" + Fore.RESET
-                    else :
+                    else:
                         perfect = True
                         presentation = False
                         failed = False
 
-                        for diff, ia, ja, ib, jb in diffcodes :
+                        for diff, ia, ja, ib, jb in diffcodes:
 
                             expected_color = None
                             output_color = None
 
-                            if diff == "insert" :
+                            if diff == "insert":
                                 perfect = False
 
                                 if ia < ja:
@@ -213,29 +244,29 @@ if __name__ == '__main__':
                                 if ib < jb:
                                     if output[ib:jb].strip() == "":
                                         presentation = False
-                                    else :
+                                    else:
                                         output_color = Fore.YELLOW
 
-                            elif diff == "replace" :
+                            elif diff == "replace":
                                 perfect = False
                                 failed = True
                                 expected_color = Fore.RED
                                 output_color = Fore.RED
 
-                            elif diff == "delete" :
+                            elif diff == "delete":
                                 if not (expected_output[ia:ja].strip() and output[ib:jb].strip()):
                                     presentation = True
-                                else :
+                                else:
                                     perfect = False
                                     failed = True
 
-                            elif diff == "equal" :
+                            elif diff == "equal":
                                 expected_color = Fore.GREEN
                                 output_color = Fore.GREEN
 
                             if expected_color:
                                 color_expected_output += "\n".join(expected_color + s + Fore.RESET if len(s) > 0 else s for s in expected_output[ia:ja].split("\n"))
-                            else :
+                            else:
                                 color_expected_output += expected_output[ia:ja]
                             if output_color:
                                 color_output += "\n".join(output_color + s + Fore.RESET if len(s) > 0 else s for s in output[ib:jb].split("\n"))
@@ -253,11 +284,11 @@ if __name__ == '__main__':
 
                         if failed:
                             status = Fore.RED + "FAILED" + Fore.RESET
-                        elif presentation :
+                        elif presentation:
                             status = Fore.CYAN + "PRESENTATION" + Fore.RESET
-                        elif perfect :
+                        elif perfect:
                             status = Fore.GREEN + "PERFECT" + Fore.RESET
-                        else :
+                        else:
                             status = Fore.YELLOW + "PASSED" + Fore.RESET
 
                 print("- {}".format(test["name"]))
@@ -268,5 +299,10 @@ if __name__ == '__main__':
                 column_print(color_expected_output, color_output)
                 print("- status: {}".format(status))
                 print()
+
+        # Remove out dir
+        compile_command = f"docker run --rm -v {os.getcwd()}/{path_dir}:/app -w /app -i openjdk:12 rm -r out/"
+        print(compile_command)
+
         tag_command = "git -C {} checkout master".format(path_dir)
         code_tag = subprocess.call(tag_command.split())
