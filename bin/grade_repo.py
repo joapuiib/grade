@@ -15,7 +15,6 @@ from ansiwrap import wrap
 from pygments import highlight as highlight_py
 from pygments.lexers import get_lexer_by_name
 from pygments.formatters import Terminal256Formatter
-import shutil
 
 
 def highlight(text):
@@ -103,9 +102,9 @@ if __name__ == '__main__':
     args.dir.sort(key=lambda x: x.split(".")[1])
 
     for path_dir in args.dir:
-        tag_command = "git -C {} checkout master".format(path_dir)
+        tag_command = f"git -C {path_dir} checkout master"
         code_tag = subprocess.call(tag_command.split())
-        pull_command = "git -C {} pull --tags -f".format(path_dir)
+        pull_command = f"git -C {path_dir} pull --tags -f"
         print(pull_command)
         code_pull = subprocess.call(pull_command.split())
         print()
@@ -117,7 +116,7 @@ if __name__ == '__main__':
 
         package = test_cases["package"]
         tag = test_cases.get("tag", "master")
-        tag_command = "git -c advice.detachedHead=false -C {} checkout {}".format(path_dir, tag)
+        tag_command = f"git -c advice.detachedHead=false -C {path_dir} checkout {tag}"
         print(tag_command)
         code_tag = subprocess.call(tag_command.split())
         print()
@@ -194,8 +193,11 @@ if __name__ == '__main__':
                 run_command = f"docker run --rm -v {os.getcwd()}/{out_dir}:/app -w /app -i openjdk:12 java {java_package}"
                 print(run_command)
                 if args.interactive:
-                    process = subprocess.Popen(run_command.split())
-                    process.communicate()
+                    try:
+                        process = subprocess.Popen(run_command.split())
+                        process.communicate()
+                    except KeyboardInterrupt:
+                        print("\rProgram stopped.")
                     continue
                 process = subprocess.Popen(run_command.split(), stdin=subprocess.PIPE, stdout=subprocess.PIPE)
                 timer = Timer(5, process.kill)
@@ -303,6 +305,8 @@ if __name__ == '__main__':
         # Remove out dir
         compile_command = f"docker run --rm -v {os.getcwd()}/{path_dir}:/app -w /app -i openjdk:12 rm -r out/"
         print(compile_command)
+        process = subprocess.Popen(compile_command.split(), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        process.communicate()
 
         tag_command = "git -C {} checkout master".format(path_dir)
         code_tag = subprocess.call(tag_command.split())
