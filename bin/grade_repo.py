@@ -185,20 +185,21 @@ if __name__ == '__main__':
                     line_number_print(highlight(f.read()))
                 print()
 
+            run_command = f"docker run --rm -v {os.getcwd()}/{out_dir}:/app -w /app -i openjdk:12 java {java_package}"
+            print(run_command)
+            if args.interactive:
+                try:
+                    process = subprocess.Popen(run_command.split())
+                    process.communicate()
+                except KeyboardInterrupt:
+                    print("\rProgram stopped.")
+                continue
+
             for test in tests:
                 expected_output = test["output"]
                 test_input = test["input"]
 
                 status = None
-                run_command = f"docker run --rm -v {os.getcwd()}/{out_dir}:/app -w /app -i openjdk:12 java {java_package}"
-                print(run_command)
-                if args.interactive:
-                    try:
-                        process = subprocess.Popen(run_command.split())
-                        process.communicate()
-                    except KeyboardInterrupt:
-                        print("\rProgram stopped.")
-                    continue
                 process = subprocess.Popen(run_command.split(), stdin=subprocess.PIPE, stdout=subprocess.PIPE)
                 timer = Timer(5, process.kill)
                 try:
