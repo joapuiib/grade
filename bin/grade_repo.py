@@ -192,6 +192,7 @@ if __name__ == '__main__':
             volumes_str = " ".join([f"-v {os.getcwd()}/{path_dir}/{volume_name}:/app/{volume_name}" for volume_name in volumes])
             run_command = f"docker run --rm -v {os.getcwd()}/{out_dir}:/app {volumes_str} -w /app -i openjdk:12 java {java_package}"
             print(run_command)
+
             if args.interactive:
                 try:
                     process = subprocess.Popen(run_command.split())
