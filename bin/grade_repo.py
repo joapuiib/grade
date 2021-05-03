@@ -94,9 +94,10 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument("test_cases")
     parser.add_argument("dir", nargs="*")
-    parser.add_argument("-v", "--verbose", action="store_true")
+    parser.add_argument("--verbose", action="store_true")
     parser.add_argument("--remove-color", action="store_true")
     parser.add_argument("-i", "--interactive", action="store_true")
+    parser.add_argument("-v", "--volume", action="append", default=[])
     args = parser.parse_args()
 
     args.dir.sort(key=lambda x: x.split(".")[1])
@@ -138,7 +139,10 @@ if __name__ == '__main__':
         if not os.path.isdir(out_dir):
             os.makedirs(out_dir, exist_ok=True)
 
-        for exercise in test_cases["exercises"]:
+        volumes = args.volume
+        volumes += test_cases.get("volumes", [])
+
+        for exercise in test_cases.get("exercises", []):
             name = exercise["className"]
             subpackage = exercise.get("subpackage", "")
             path = "{}/**/{}/{}.java".format(path_dir, "/".join(package.split(".")), "/".join([subpackage, name]))
@@ -157,10 +161,10 @@ if __name__ == '__main__':
             java_package = source_file.split("src/")[1].replace(".java", "")
 
             tests = exercise.get("tests", [])
-            tests += load_tests("testcases/problems/{}".format(name))
+            tests += load_tests(f"testcases/problems/{name}")
 
             # Build
-            compile_command = "docker run --rm -v {}/{}:/app -w /app -i openjdk:12 javac -verbose -cp out/ -sourcepath src/ -d out/ src/{}.java".format(os.getcwd(), path_dir, java_package)
+            compile_command = f"docker run --rm -v {os.getcwd()}/{path_dir}:/app -w /app -i openjdk:12 javac -verbose -cp out/ -sourcepath src/ -d out/ src/{java_package}.java"
             print(compile_command)
 
             process = subprocess.Popen(compile_command.split(), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
@@ -185,20 +189,22 @@ if __name__ == '__main__':
                     line_number_print(highlight(f.read()))
                 print()
 
+            volumes_str = " ".join([f"-v {os.getcwd()}/{path_dir}/{volume_name}:/app/{volume_name}" for volume_name in volumes])
+            run_command = f"docker run --rm -v {os.getcwd()}/{out_dir}:/app {volumes_str} -w /app -i openjdk:12 java {java_package}"
+            print(run_command)
+            if args.interactive:
+                try:
+                    process = subprocess.Popen(run_command.split())
+                    process.communicate()
+                except KeyboardInterrupt:
+                    print("\rProgram stopped.")
+                continue
+
             for test in tests:
                 expected_output = test["output"]
                 test_input = test["input"]
 
                 status = None
-                run_command = f"docker run --rm -v {os.getcwd()}/{out_dir}:/app -w /app -i openjdk:12 java {java_package}"
-                print(run_command)
-                if args.interactive:
-                    try:
-                        process = subprocess.Popen(run_command.split())
-                        process.communicate()
-                    except KeyboardInterrupt:
-                        print("\rProgram stopped.")
-                    continue
                 process = subprocess.Popen(run_command.split(), stdin=subprocess.PIPE, stdout=subprocess.PIPE)
                 timer = Timer(5, process.kill)
                 try:

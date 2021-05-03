@@ -1,0 +1,8 @@
+name: practica
+package: dam.m03.uf5.practica
+tag: practicaUF5
+date: "2021-05-09 00:00:00"
+volumes:
+  - "files"
+exercises:
+  - className: "CovidStatsApp"
