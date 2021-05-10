@@ -1,0 +1,3 @@
+[submodule "testcases/problems"]
+	path = testcases/problems
+	url = ../problemes-programacio
