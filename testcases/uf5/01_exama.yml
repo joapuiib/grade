@@ -1,0 +1,8 @@
+name: examen
+package: dam.m03.uf5.generalexam
+tag: ExamenUF5
+date: "2021-05-10 12:15:00"
+exercises:
+  - className: "SearchByISBN"
+  - className: "BookRanking"
+  - className: "IsValidISBN"
